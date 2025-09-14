@@ -1,0 +1,26 @@
+# Para executar o ffigen é necessário fazer o build do cmake excutando:
+# 1. cd src
+# 2. mkdir build
+# 3. cd build
+# 4. cmake .
+# Run with `dart run ffigen --config ffigen.yaml`.
+name: pdfium_wrapper
+description: |
+  Bindings for `src/pdfium_dart.h`.
+
+  Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
+output: 'lib/bind/pdfium_bindings.dart'
+headers:
+  entry-points:
+    - 'src/pdfium_wrapper.h'
+compiler-opts:
+  - "-Isrc/build/.lib/latest/include"
+preamble: |
+  // ignore_for_file: always_specify_types
+  // ignore_for_file: camel_case_types
+  // ignore_for_file: non_constant_identifier_names
+  // ignore_for_file: unused_element
+  // ignore_for_file: unused_field
+comments:
+  style: any
+  length: full
