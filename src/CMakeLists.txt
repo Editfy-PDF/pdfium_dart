@@ -86,13 +86,12 @@ if (NOT EXISTS ${PDFIUM_LIBS_DIR}/include)
 endif()
 
 # Create symlink or copy for latest
-#if(WIN32)
-    file(REMOVE ${PDFIUM_LATEST_DIR})
+if(WIN32)
     file(COPY ${PDFIUM_LIBS_DIR}/ DESTINATION ${PDFIUM_LATEST_DIR})
-#else()
-#    file(REMOVE ${PDFIUM_LATEST_DIR})
-#    file(CREATE_LINK ${PDFIUM_LIBS_DIR} ${PDFIUM_LATEST_DIR} SYMBOLIC)
-#endif()
+else()
+    file(REMOVE ${PDFIUM_LATEST_DIR})
+    file(CREATE_LINK ${PDFIUM_LIBS_DIR} ${PDFIUM_LATEST_DIR} SYMBOLIC)
+endif()
 
 # Build target
 add_library(pdfium_dart SHARED pdfium_wrapper.c)
