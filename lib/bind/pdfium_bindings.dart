@@ -9320,6 +9320,64 @@ class pdfium_wrapper {
   late final _pdfium_CloseDocument = _pdfium_CloseDocumentPtr
       .asFunction<void Function(FPDF_DOCUMENT)>();
 
+  int pdfium_IsProtected(FPDF_DOCUMENT doc) {
+    return _pdfium_IsProtected(doc);
+  }
+
+  late final _pdfium_IsProtectedPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(FPDF_DOCUMENT)>>(
+        'pdfium_IsProtected',
+      );
+  late final _pdfium_IsProtected = _pdfium_IsProtectedPtr
+      .asFunction<int Function(FPDF_DOCUMENT)>();
+
+  FPDF_BITMAP pdfium_CreateBitmapBuffer(int width, int height, int alpha) {
+    return _pdfium_CreateBitmapBuffer(width, height, alpha);
+  }
+
+  late final _pdfium_CreateBitmapBufferPtr =
+      _lookup<
+        ffi.NativeFunction<FPDF_BITMAP Function(ffi.Int, ffi.Int, ffi.Int)>
+      >('pdfium_CreateBitmapBuffer');
+  late final _pdfium_CreateBitmapBuffer = _pdfium_CreateBitmapBufferPtr
+      .asFunction<FPDF_BITMAP Function(int, int, int)>();
+
+  int pdfium_freeBitmapBuffer(FPDF_BITMAP bitmap) {
+    return _pdfium_freeBitmapBuffer(bitmap);
+  }
+
+  late final _pdfium_freeBitmapBufferPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(FPDF_BITMAP)>>(
+        'pdfium_freeBitmapBuffer',
+      );
+  late final _pdfium_freeBitmapBuffer = _pdfium_freeBitmapBufferPtr
+      .asFunction<int Function(FPDF_BITMAP)>();
+
+  int pdfium_RenderPage(
+    FPDF_DOCUMENT doc,
+    FPDF_BITMAP bitmap,
+    int pageIndex,
+    int width,
+    int height,
+  ) {
+    return _pdfium_RenderPage(doc, bitmap, pageIndex, width, height);
+  }
+
+  late final _pdfium_RenderPagePtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Int Function(
+            FPDF_DOCUMENT,
+            FPDF_BITMAP,
+            ffi.Int,
+            ffi.Int,
+            ffi.Int,
+          )
+        >
+      >('pdfium_RenderPage');
+  late final _pdfium_RenderPage = _pdfium_RenderPagePtr
+      .asFunction<int Function(FPDF_DOCUMENT, FPDF_BITMAP, int, int, int)>();
+
   int pdfium_PageCount(FPDF_DOCUMENT document) {
     return _pdfium_PageCount(document);
   }
@@ -9383,16 +9441,16 @@ class pdfium_wrapper {
         ffi.Pointer<ffi.UnsignedShort> Function(FPDF_DOCUMENT, int)
       >();
 
-  void pdfium_FreeBuffer(ffi.Pointer<ffi.UnsignedShort> buffer) {
+  int pdfium_FreeBuffer(ffi.Pointer<ffi.UnsignedShort> buffer) {
     return _pdfium_FreeBuffer(buffer);
   }
 
   late final _pdfium_FreeBufferPtr =
       _lookup<
-        ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.UnsignedShort>)>
+        ffi.NativeFunction<ffi.Int Function(ffi.Pointer<ffi.UnsignedShort>)>
       >('pdfium_FreeBuffer');
   late final _pdfium_FreeBuffer = _pdfium_FreeBufferPtr
-      .asFunction<void Function(ffi.Pointer<ffi.UnsignedShort>)>();
+      .asFunction<int Function(ffi.Pointer<ffi.UnsignedShort>)>();
 }
 
 final class __fsid_t extends ffi.Struct {

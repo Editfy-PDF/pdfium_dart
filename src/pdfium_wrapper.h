@@ -25,6 +25,14 @@ FFI_PLUGIN_EXPORT FPDF_DOCUMENT pdfium_LoadDocument(FPDF_BYTESTRING path, FPDF_B
 
 FFI_PLUGIN_EXPORT void pdfium_CloseDocument(FPDF_DOCUMENT doc);
 
+FFI_PLUGIN_EXPORT int pdfium_IsProtected(FPDF_DOCUMENT doc);
+
+FFI_PLUGIN_EXPORT FPDF_BITMAP pdfium_CreateBitmapBuffer(int width, int height, int alpha);
+
+FFI_PLUGIN_EXPORT int pdfium_freeBitmapBuffer(FPDF_BITMAP bitmap);
+
+FFI_PLUGIN_EXPORT int pdfium_RenderPage(FPDF_DOCUMENT doc, FPDF_BITMAP bitmap, int pageIndex, int width, int height);
+
 FFI_PLUGIN_EXPORT int pdfium_PageCount(FPDF_DOCUMENT document);
 
 FFI_PLUGIN_EXPORT int pdfium_CharCount(FPDF_DOCUMENT doc, int pageIndex);
@@ -33,4 +41,4 @@ FFI_PLUGIN_EXPORT int pdfium_GetPageText(FPDF_DOCUMENT doc, int pageIndex, unsig
 
 FFI_PLUGIN_EXPORT unsigned short* pdfium_NewBuffer(FPDF_DOCUMENT doc, int pageIndex);
 
-FFI_PLUGIN_EXPORT void pdfium_FreeBuffer(unsigned short* buffer);
+FFI_PLUGIN_EXPORT int pdfium_FreeBuffer(unsigned short* buffer);
