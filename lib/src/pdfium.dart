@@ -12,7 +12,7 @@ class Pdfium {
     try{
       final DynamicLibrary nativeLib = () {
         if (Platform.isLinux || Platform.isAndroid) {
-          return DynamicLibrary.open('src/build/libpdfium_dart.so'); // alterar para produção
+          return DynamicLibrary.open('libpdfium_dart.so'); // alterar para produção
         } else if (Platform.isWindows) {
           return DynamicLibrary.open('pdfium_dart.dll');
         } else {
