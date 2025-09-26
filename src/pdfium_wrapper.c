@@ -19,14 +19,36 @@ FFI_PLUGIN_EXPORT void pdfium_CloseDocument(FPDF_DOCUMENT doc){
   FPDF_CloseDocument(doc);
 }
 
-FFI_PLUGIN_EXPORT int pdfium_IsProtected(FPDF_DOCUMENT doc){
-  return FPDF_GetSecurityHandlerRevision(doc);
+FFI_PLUGIN_EXPORT unsigned long pdfium_GetLastError(){
+  return FPDF_GetLastError();
+}
+
+FFI_PLUGIN_EXPORT int pdfium_GetBitmapWidth(FPDF_BITMAP bitmap){
+  return FPDFBitmap_GetWidth(bitmap);
+}
+
+FFI_PLUGIN_EXPORT int pdfium_GetBitmapHeight(FPDF_BITMAP bitmap){
+  return FPDFBitmap_GetHeight(bitmap);
+}
+
+FFI_PLUGIN_EXPORT int pdfium_GetSizeByIndex(FPDF_DOCUMENT doc, int pageIndex, FS_SIZEF size){
+  return FPDF_GetPageSizeByIndexF(doc, pageIndex, &size);
+}
+
+FFI_PLUGIN_EXPORT FPDF_BITMAP pdfium_GetBitmapThumb(FPDF_DOCUMENT doc, int pageIndex){
+  FPDF_PAGE page = FPDF_LoadPage(doc, pageIndex);
+
+  FPDF_BITMAP thumb = FPDFPage_GetThumbnailAsBitmap(page);
+
+  FPDF_ClosePage(page);
+  
+  return thumb;
 }
 
 FFI_PLUGIN_EXPORT FPDF_BITMAP pdfium_CreateBitmapBuffer(int width, int height, int alpha){
   FPDF_BITMAP bitmap = FPDFBitmap_Create(width, height, alpha);
 
-  FPDFBitmap_FillRect(bitmap, 0, 0, width, height, 0x00000000);
+  FPDFBitmap_FillRect(bitmap, 0, 0, width, height, 0xffffffff);
 
   return bitmap;
 }
@@ -39,11 +61,32 @@ FFI_PLUGIN_EXPORT int pdfium_freeBitmapBuffer(FPDF_BITMAP bitmap){
   return 0;
 }
 
+FFI_PLUGIN_EXPORT uint8_t* pdfium_GetBuffer(FPDF_BITMAP bitmap){
+  uint8_t* buffer = (uint8_t*) FPDFBitmap_GetBuffer(bitmap);
+
+  return buffer;
+}
+
+FFI_PLUGIN_EXPORT int pdfium_GetBitmapFormat(FPDF_BITMAP bitmap){
+  switch(FPDFBitmap_GetFormat(bitmap)){
+    case 1:
+        return 1;
+      case 2:
+        return 3;
+      case 3:
+      case 4:
+      case 5:
+        return 4;
+      default:
+        return 3;
+  }
+}
+
 FFI_PLUGIN_EXPORT int pdfium_RenderPage(FPDF_DOCUMENT doc, FPDF_BITMAP bitmap, int pageIndex, int width, int height){
   FPDF_PAGE page = FPDF_LoadPage(doc, pageIndex);
   if(!page) return 1;
 
-  FPDF_RenderPageBitmap(bitmap, page, 0, 0, width, height, 0, 0);
+  FPDF_RenderPageBitmap(bitmap, page, 0, 0, width, height, 0, FPDF_ANNOT);
 
   FPDF_ClosePage(page);
 

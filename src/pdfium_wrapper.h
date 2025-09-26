@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "fpdfview.h"
 #include "fpdf_text.h"
+#include "fpdf_thumbnail.h"
 
 #if _WIN32
 #include <windows.h>
@@ -25,11 +26,23 @@ FFI_PLUGIN_EXPORT FPDF_DOCUMENT pdfium_LoadDocument(FPDF_BYTESTRING path, FPDF_B
 
 FFI_PLUGIN_EXPORT void pdfium_CloseDocument(FPDF_DOCUMENT doc);
 
-FFI_PLUGIN_EXPORT int pdfium_IsProtected(FPDF_DOCUMENT doc);
+FFI_PLUGIN_EXPORT unsigned long pdfium_GetLastError();
+
+FFI_PLUGIN_EXPORT int pdfium_GetBitmapWidth(FPDF_BITMAP bitmap);
+
+FFI_PLUGIN_EXPORT int pdfium_GetBitmapHeight(FPDF_BITMAP bitmap);
+
+FFI_PLUGIN_EXPORT int pdfium_GetSizeByIndex(FPDF_DOCUMENT doc, int pageIndex, FS_SIZEF size);
+
+FFI_PLUGIN_EXPORT FPDF_BITMAP pdfium_GetBitmapThumb(FPDF_DOCUMENT doc, int pageIndex);
 
 FFI_PLUGIN_EXPORT FPDF_BITMAP pdfium_CreateBitmapBuffer(int width, int height, int alpha);
 
 FFI_PLUGIN_EXPORT int pdfium_freeBitmapBuffer(FPDF_BITMAP bitmap);
+
+FFI_PLUGIN_EXPORT uint8_t* pdfium_GetBuffer(FPDF_BITMAP bitmap);
+
+FFI_PLUGIN_EXPORT int pdfium_GetBitmapFormat(FPDF_BITMAP bitmap);
 
 FFI_PLUGIN_EXPORT int pdfium_RenderPage(FPDF_DOCUMENT doc, FPDF_BITMAP bitmap, int pageIndex, int width, int height);
 

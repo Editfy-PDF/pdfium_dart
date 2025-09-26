@@ -5758,6 +5758,90 @@ class pdfium_wrapper {
   late final _FPDFLink_CloseWebLinks =
       _FPDFLink_CloseWebLinksPtr.asFunction<void Function(FPDF_PAGELINK)>();
 
+  /// Experimental API.
+  /// Gets the decoded data from the thumbnail of |page| if it exists.
+  /// This only modifies |buffer| if |buflen| less than or equal to the
+  /// size of the decoded data. Returns the size of the decoded
+  /// data or 0 if thumbnail DNE. Optional, pass null to just retrieve
+  /// the size of the buffer needed.
+  ///
+  /// page    - handle to a page.
+  /// buffer  - buffer for holding the decoded image data.
+  /// buflen  - length of the buffer in bytes.
+  int FPDFPage_GetDecodedThumbnailData(
+    FPDF_PAGE page,
+    ffi.Pointer<ffi.Void> buffer,
+    int buflen,
+  ) {
+    return _FPDFPage_GetDecodedThumbnailData(page, buffer, buflen);
+  }
+
+  late final _FPDFPage_GetDecodedThumbnailDataPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.UnsignedLong Function(
+            FPDF_PAGE,
+            ffi.Pointer<ffi.Void>,
+            ffi.UnsignedLong,
+          )
+        >
+      >('FPDFPage_GetDecodedThumbnailData');
+  late final _FPDFPage_GetDecodedThumbnailData =
+      _FPDFPage_GetDecodedThumbnailDataPtr.asFunction<
+        int Function(FPDF_PAGE, ffi.Pointer<ffi.Void>, int)
+      >();
+
+  /// Experimental API.
+  /// Gets the raw data from the thumbnail of |page| if it exists.
+  /// This only modifies |buffer| if |buflen| is less than or equal to
+  /// the size of the raw data. Returns the size of the raw data or 0
+  /// if thumbnail DNE. Optional, pass null to just retrieve the size
+  /// of the buffer needed.
+  ///
+  /// page    - handle to a page.
+  /// buffer  - buffer for holding the raw image data.
+  /// buflen  - length of the buffer in bytes.
+  int FPDFPage_GetRawThumbnailData(
+    FPDF_PAGE page,
+    ffi.Pointer<ffi.Void> buffer,
+    int buflen,
+  ) {
+    return _FPDFPage_GetRawThumbnailData(page, buffer, buflen);
+  }
+
+  late final _FPDFPage_GetRawThumbnailDataPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.UnsignedLong Function(
+            FPDF_PAGE,
+            ffi.Pointer<ffi.Void>,
+            ffi.UnsignedLong,
+          )
+        >
+      >('FPDFPage_GetRawThumbnailData');
+  late final _FPDFPage_GetRawThumbnailData =
+      _FPDFPage_GetRawThumbnailDataPtr.asFunction<
+        int Function(FPDF_PAGE, ffi.Pointer<ffi.Void>, int)
+      >();
+
+  /// Experimental API.
+  /// Returns the thumbnail of |page| as a FPDF_BITMAP. Returns a nullptr
+  /// if unable to access the thumbnail's stream.
+  ///
+  /// page - handle to a page.
+  FPDF_BITMAP FPDFPage_GetThumbnailAsBitmap(FPDF_PAGE page) {
+    return _FPDFPage_GetThumbnailAsBitmap(page);
+  }
+
+  late final _FPDFPage_GetThumbnailAsBitmapPtr =
+      _lookup<ffi.NativeFunction<FPDF_BITMAP Function(FPDF_PAGE)>>(
+        'FPDFPage_GetThumbnailAsBitmap',
+      );
+  late final _FPDFPage_GetThumbnailAsBitmap =
+      _FPDFPage_GetThumbnailAsBitmapPtr.asFunction<
+        FPDF_BITMAP Function(FPDF_PAGE)
+      >();
+
   int __sched_cpucount(int __setsize, ffi.Pointer<cpu_set_t> __setp) {
     return ___sched_cpucount(__setsize, __setp);
   }
@@ -9320,16 +9404,60 @@ class pdfium_wrapper {
   late final _pdfium_CloseDocument = _pdfium_CloseDocumentPtr
       .asFunction<void Function(FPDF_DOCUMENT)>();
 
-  int pdfium_IsProtected(FPDF_DOCUMENT doc) {
-    return _pdfium_IsProtected(doc);
+  int pdfium_GetLastError() {
+    return _pdfium_GetLastError();
   }
 
-  late final _pdfium_IsProtectedPtr =
-      _lookup<ffi.NativeFunction<ffi.Int Function(FPDF_DOCUMENT)>>(
-        'pdfium_IsProtected',
+  late final _pdfium_GetLastErrorPtr =
+      _lookup<ffi.NativeFunction<ffi.UnsignedLong Function()>>(
+        'pdfium_GetLastError',
       );
-  late final _pdfium_IsProtected = _pdfium_IsProtectedPtr
-      .asFunction<int Function(FPDF_DOCUMENT)>();
+  late final _pdfium_GetLastError = _pdfium_GetLastErrorPtr
+      .asFunction<int Function()>();
+
+  int pdfium_GetBitmapWidth(FPDF_BITMAP bitmap) {
+    return _pdfium_GetBitmapWidth(bitmap);
+  }
+
+  late final _pdfium_GetBitmapWidthPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(FPDF_BITMAP)>>(
+        'pdfium_GetBitmapWidth',
+      );
+  late final _pdfium_GetBitmapWidth = _pdfium_GetBitmapWidthPtr
+      .asFunction<int Function(FPDF_BITMAP)>();
+
+  int pdfium_GetBitmapHeight(FPDF_BITMAP bitmap) {
+    return _pdfium_GetBitmapHeight(bitmap);
+  }
+
+  late final _pdfium_GetBitmapHeightPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(FPDF_BITMAP)>>(
+        'pdfium_GetBitmapHeight',
+      );
+  late final _pdfium_GetBitmapHeight = _pdfium_GetBitmapHeightPtr
+      .asFunction<int Function(FPDF_BITMAP)>();
+
+  int pdfium_GetSizeByIndex(FPDF_DOCUMENT doc, int pageIndex, FS_SIZEF size) {
+    return _pdfium_GetSizeByIndex(doc, pageIndex, size);
+  }
+
+  late final _pdfium_GetSizeByIndexPtr =
+      _lookup<
+        ffi.NativeFunction<ffi.Int Function(FPDF_DOCUMENT, ffi.Int, FS_SIZEF)>
+      >('pdfium_GetSizeByIndex');
+  late final _pdfium_GetSizeByIndex = _pdfium_GetSizeByIndexPtr
+      .asFunction<int Function(FPDF_DOCUMENT, int, FS_SIZEF)>();
+
+  FPDF_BITMAP pdfium_GetBitmapThumb(FPDF_DOCUMENT doc, int pageIndex) {
+    return _pdfium_GetBitmapThumb(doc, pageIndex);
+  }
+
+  late final _pdfium_GetBitmapThumbPtr =
+      _lookup<ffi.NativeFunction<FPDF_BITMAP Function(FPDF_DOCUMENT, ffi.Int)>>(
+        'pdfium_GetBitmapThumb',
+      );
+  late final _pdfium_GetBitmapThumb = _pdfium_GetBitmapThumbPtr
+      .asFunction<FPDF_BITMAP Function(FPDF_DOCUMENT, int)>();
 
   FPDF_BITMAP pdfium_CreateBitmapBuffer(int width, int height, int alpha) {
     return _pdfium_CreateBitmapBuffer(width, height, alpha);
@@ -9351,6 +9479,28 @@ class pdfium_wrapper {
         'pdfium_freeBitmapBuffer',
       );
   late final _pdfium_freeBitmapBuffer = _pdfium_freeBitmapBufferPtr
+      .asFunction<int Function(FPDF_BITMAP)>();
+
+  ffi.Pointer<ffi.Uint8> pdfium_GetBuffer(FPDF_BITMAP bitmap) {
+    return _pdfium_GetBuffer(bitmap);
+  }
+
+  late final _pdfium_GetBufferPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Uint8> Function(FPDF_BITMAP)>>(
+        'pdfium_GetBuffer',
+      );
+  late final _pdfium_GetBuffer = _pdfium_GetBufferPtr
+      .asFunction<ffi.Pointer<ffi.Uint8> Function(FPDF_BITMAP)>();
+
+  int pdfium_GetBitmapFormat(FPDF_BITMAP bitmap) {
+    return _pdfium_GetBitmapFormat(bitmap);
+  }
+
+  late final _pdfium_GetBitmapFormatPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(FPDF_BITMAP)>>(
+        'pdfium_GetBitmapFormat',
+      );
+  late final _pdfium_GetBitmapFormat = _pdfium_GetBitmapFormatPtr
       .asFunction<int Function(FPDF_BITMAP)>();
 
   int pdfium_RenderPage(

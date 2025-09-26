@@ -1,3 +1,7 @@
 {
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "files.associations": {
+        "fpdf_text.h": "c",
+        "fpdfview.h": "c"
+    }
 }
