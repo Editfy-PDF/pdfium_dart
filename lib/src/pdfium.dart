@@ -8,32 +8,33 @@ class Pdfium {
   late pdfium_wrapper _lib;
   late Pointer<fpdf_document_t__> document;
 
-  Pdfium(){
+  Pdfium(Pointer<FPDF_LIBRARY_CONFIG>? pdfiumConfig){
+    pdfiumConfig == null ? pdfiumConfig = nullptr : null;
     try{
       final DynamicLibrary nativeLib = () {
         if (Platform.isLinux || Platform.isAndroid) {
-          return DynamicLibrary.open('libpdfium_dart.so'); // alterar para produção
+          return DynamicLibrary.open('libpdfium.so');
         } else if (Platform.isWindows) {
-          return DynamicLibrary.open('pdfium_dart.dll');
+          return DynamicLibrary.open('libpdfium.dll');
         } else {
           throw UnsupportedError('Unsupported platform');
         }
       }();
 
       _lib = pdfium_wrapper(nativeLib);
-    
-      _lib.pdfium_init(nullptr);
+
+      _lib.FPDF_InitLibraryWithConfig(pdfiumConfig);
     } catch(e){
-      stdout.write(e);
+      throw Exception(e);
     }
   }
 
   dispose(){
-    _lib.pdfium_dispose();
+    _lib.FPDF_DestroyLibrary();
   }
 
   String getLastError(){
-    var error = _lib.pdfium_GetLastError();
+    var error = _lib.FPDF_GetLastError();
 
     switch(error){
       case 0:
@@ -59,108 +60,149 @@ class Pdfium {
     }
   }
 
-  void openDoc(String path, {String password = ''}){
+  int openDocument(String path, {String password = ''}){
     var ppath = path.toNativeUtf8();
     var ppass = password.toNativeUtf8();
+
+    document = _lib.FPDF_LoadDocument(ppath.cast(), ppass.cast());
+    if(document.address == 0) return 1;
+
+    calloc.free(ppath);
+    calloc.free(ppass);
     
-    try{
-      document = _lib.pdfium_LoadDocument(ppath.cast(), ppass.cast());
-    } catch(e){
-      stdout.write(e);
-    } finally{
-      calloc.free(ppath);
-    }
+    return 0;
   }
 
   int countPages(){
-    return _lib.pdfium_PageCount(document);
+    return _lib.FPDF_GetPageCount(document);
   }
 
-  int countChars(int pageIndex){
-    return _lib.pdfium_CharCount(document, pageIndex);
+  int countChars(int pageIndex) {
+    final page = _lib.FPDF_LoadPage(document, pageIndex);
+    if (page.address == 0) return -1;
+
+    final textPage = _lib.FPDFText_LoadPage(page);
+    if (textPage.address == 0) {
+      _lib.FPDF_ClosePage(page);
+      return -1;
+    }
+
+    final count = _lib.FPDFText_CountChars(textPage);
+
+    _lib.FPDFText_ClosePage(textPage);
+    _lib.FPDF_ClosePage(page);
+
+    return count;
   }
 
   String getText(int pageIndex){
-    final buffer = _lib.pdfium_NewBuffer(document, pageIndex);
-    if(buffer == nullptr){
+    FPDF_PAGE page = _lib.FPDF_LoadPage(document, pageIndex);
+    if(page == nullptr) return '';
+
+    FPDF_TEXTPAGE txtPage = _lib.FPDFText_LoadPage(page);
+    if(txtPage == nullptr){
+      _lib.FPDF_ClosePage(page);
       return '';
     }
 
-    final charLen = _lib.pdfium_GetPageText(document, pageIndex, buffer);
-    if(charLen == -1){
-      return '';
-    }
+    int pageLen = _lib.FPDFText_CountChars(txtPage);
+
+    Pointer<UnsignedShort> buffer = malloc<UnsignedShort>((pageLen + 1) * sizeOf<UnsignedShort>());
+
+    _lib.FPDFText_GetText(
+      txtPage,
+      0,
+      pageLen,
+      buffer
+    );
+
+    _lib.FPDFText_ClosePage(txtPage);
+    _lib.FPDF_ClosePage(page);
 
     final List<int> bufContent = []; 
-    for(int i=0; i<charLen; i++){
+    for(int i=0; i<pageLen; i++){
       bufContent.add(buffer[i]);
     }
     
-    calloc.free(buffer);
+    malloc.free(buffer);
 
     return String.fromCharCodes(bufContent);
   }
 
-  Uint8List? renderPage(int scrWidth, int scrHeight, int pageIndex){
-    final size = calloc<FS_SIZEF>();
+  Uint8List? renderPage(
+  int pageIndex,
+  int width,
+  int height
+) {
+  final FPDF_PAGE page = _lib.FPDF_LoadPage(document, pageIndex);
+  if (page == nullptr) return null;
 
-    var bool = _lib.pdfium_GetSizeByIndex(document, pageIndex, size.ref); // size não está retornando valores
-    print('bool -> $bool');
-    if(bool != 0){
-      calloc.free(size);
-      return null;
-    }
-    
-    int dpi = 150;
-    double scale = dpi / 72;
-    print('scale -> $scale');
-    print('pdfWidth -> ${size.ref.width}');
-    print('pdfHeight -> ${size.ref.height}');
-
-    int width = size.ref.width.toInt() * scale.toInt();
-    print('width -> $width');
-    int height = size.ref.height.toInt() * scale.toInt();
-    print('height -> $height');
-
-    var bitmap = _lib.pdfium_CreateBitmapBuffer(width, height, 1);
-    if(bitmap == nullptr) return null;
-    
-    var result = _lib.pdfium_RenderPage(document, bitmap, pageIndex, width, height);
-    if(result == 1){
-      _lib.pdfium_freeBitmapBuffer(bitmap);
-      return null;
-    }
-
-    int nBytes = _lib.pdfium_GetBitmapFormat(bitmap);
-    int length = sizeOf<Uint8>() * width * height * nBytes;
-    
-    var rawData = _lib.pdfium_GetBuffer(bitmap);
-    
-    if(rawData == nullptr){
-      _lib.pdfium_freeBitmapBuffer(bitmap);
-      return null;
-    }
-
-    Uint8List data = rawData.asTypedList(length);
-
-    calloc.free(size);
-    _lib.pdfium_freeBitmapBuffer(bitmap);
-
-    return data;
+  final bitmap = _lib.FPDFBitmap_Create(width, height, 0);
+  if (bitmap.address == 0){
+    _lib.FPDF_ClosePage(page);
+    return null;
   }
 
-  // Não está retornando dados
+  final stride = _lib.FPDFBitmap_GetStride(bitmap);
+
+  _lib.FPDFBitmap_FillRect(
+    bitmap,
+    0,
+    0,
+    width,
+    height,
+    0xFFFFFFFF
+  );
+
+  _lib.FPDF_RenderPageBitmap(
+    bitmap,
+    page,
+    0,
+    0,
+    width,
+    height,
+    0,
+    FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER
+  );
+
+  final buffer = _lib.FPDFBitmap_GetBuffer(bitmap);
+  if(buffer == nullptr) return null;
+  if(buffer.address == 0) return null;
+  
+  final rgba =Uint8List.fromList(
+    buffer.cast<Uint8>().asTypedList(stride * height)
+  );
+
+  _lib.FPDFBitmap_Destroy(bitmap);
+  _lib.FPDF_ClosePage(page);
+
+  return rgba;
+}
+
   Uint8List? getThumbnail(int pageIndex){
-    var bitmap = _lib.pdfium_GetBitmapThumb(document, pageIndex);
-    var width = _lib.pdfium_GetBitmapWidth(bitmap);
-    var height = _lib.pdfium_GetBitmapHeight(bitmap);
-    int nBytes = _lib.pdfium_GetBitmapFormat(bitmap);
+    final page = _lib.FPDF_LoadPage(document, pageIndex);
+
+    final bitmap = _lib.FPDFPage_GetThumbnailAsBitmap(page);
+    if(bitmap == nullptr){
+      _lib.FPDF_ClosePage(page);
+      return null;
+    }
+
+    final stride = _lib.FPDFBitmap_GetStride(bitmap);
+    final height = _lib.FPDFBitmap_GetHeight(bitmap);
     
-    int length = sizeOf<Uint8>() * width * height * nBytes;
+    final length = stride * height;
 
-    var rawData = _lib.pdfium_GetBuffer(bitmap);    
+    final buffer = _lib.FPDFBitmap_GetBuffer(bitmap) as Pointer<Uint8>;    
+    if(buffer == nullptr){
+      _lib.FPDF_ClosePage(page);
+      return null;
+    }
 
-    Uint8List thumb = rawData.asTypedList(length);
+    final thumb = Uint8List.fromList(buffer.asTypedList(length));
+    _lib.FPDF_ClosePage(page);
+    if(thumb.isEmpty) return null;    
+
     return thumb;
   }
 }

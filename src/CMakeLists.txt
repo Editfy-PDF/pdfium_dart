@@ -2,7 +2,7 @@
 # installed. You should not increase this version, as doing so will cause
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
-project(pdfium_dart_library VERSION 0.0.1 LANGUAGES C)
+project(pdfium_dart_library C)
 cmake_policy(VERSION 3.14...3.25)
 
 # Detect architecture
@@ -31,13 +31,13 @@ else()
 endif()
 
 # Variables
-set(PDFIUM_RELEASE chromium%2F7363)
+set(PDFIUM_RELEASE chromium%2F7506)
 set(PDFIUM_DIR ${CMAKE_BINARY_DIR}/pdfium)
 set(PDFIUM_RELEASE_DIR ${PDFIUM_DIR}/${PDFIUM_RELEASE})
 file(MAKE_DIRECTORY ${PDFIUM_RELEASE_DIR})
 
 if(WIN32)
-    set(PDFIUM_LIB_FILENAME "pdfium.dll")
+    set(PDFIUM_LIB_FILENAME "libpdfium.dll")
 elseif(APPLE)
     set(PDFIUM_LIB_FILENAME "libpdfium.dylib")
 else()
@@ -46,16 +46,16 @@ endif()
 
 set(PDFIUM_LIB_DIR "lib")
 set(PDFIUM_ABI ${CPU_NAME})
-set(PDFIUM_ARCHIVE_NAME pdfium-${PDFIUM_PLATFORM}-${PDFIUM_ABI})
+set(PDFIUM_ARCHIVE_NAME "pdfium-${PDFIUM_PLATFORM}-${PDFIUM_ABI}")
 
-set(PDFIUM_SRC_LIB_FILENAME ${PDFIUM_RELEASE_DIR}/${PDFIUM_LIB_DIR}/${PDFIUM_LIB_FILENAME})
-set(PDFIUM_LIBS_DIR ${CMAKE_BINARY_DIR}/.lib/${PDFIUM_RELEASE})
-set(PDFIUM_LIBS_ARCH_DIR ${PDFIUM_LIBS_DIR}/${PDFIUM_ABI})
-set(PDFIUM_DEST_LIB_FILENAME ${PDFIUM_LIBS_ARCH_DIR}/${PDFIUM_LIB_FILENAME})
+set(PDFIUM_SRC_LIB_FILENAME "${PDFIUM_RELEASE_DIR}/${PDFIUM_LIB_DIR}/${PDFIUM_LIB_FILENAME}")
+set(PDFIUM_LIBS_DIR "${CMAKE_BINARY_DIR}/.lib/${PDFIUM_RELEASE}")
+set(PDFIUM_LIBS_ARCH_DIR "${PDFIUM_LIBS_DIR}/${PDFIUM_ABI}")
+set(PDFIUM_DEST_LIB_FILENAME "${PDFIUM_LIBS_ARCH_DIR}/${PDFIUM_LIB_FILENAME}")
 
-set(PDFIUM_LATEST_DIR ${CMAKE_BINARY_DIR}/.lib/latest)
-set(PDFIUM_LATEST_LIBS_ARCH_DIR ${PDFIUM_LATEST_DIR}/${PDFIUM_ABI})
-set(PDFIUM_LATEST_LIB_FILENAME ${PDFIUM_LATEST_LIBS_ARCH_DIR}/${PDFIUM_LIB_FILENAME})
+set(PDFIUM_LATEST_DIR "${CMAKE_BINARY_DIR}/.lib/latest")
+set(PDFIUM_LATEST_LIBS_ARCH_DIR "${PDFIUM_LATEST_DIR}/${PDFIUM_ABI}")
+set(PDFIUM_LATEST_LIB_FILENAME "${PDFIUM_LATEST_LIBS_ARCH_DIR}/${PDFIUM_LIB_FILENAME}")
 
 # Download PDFium if necessary
 if(NOT EXISTS ${PDFIUM_SRC_LIB_FILENAME})
@@ -93,12 +93,18 @@ else()
     file(CREATE_LINK ${PDFIUM_LIBS_DIR} ${PDFIUM_LATEST_DIR} SYMBOLIC)
 endif()
 
-# Build target
-add_library(pdfium_dart SHARED pdfium_wrapper.c)
-target_include_directories(pdfium_dart PUBLIC ${PDFIUM_LATEST_DIR}/include)
-target_link_libraries(pdfium_dart PRIVATE ${PDFIUM_LATEST_LIB_FILENAME})
-target_compile_definitions(pdfium_dart PUBLIC DART_SHARED_LIB)
+# Minimal compilation for Android platform
+if(ANDROID)
+    add_library(dummy SHARED dummy.c)
+    target_link_options(dummy PRIVATE "-Wl,-z,max-page-size=16384")
 
-if (ANDROID)
-    target_link_options(pdfium_dart PRIVATE "-Wl,-z,max-page-size=16384")
+    add_custom_command(TARGET dummy POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${PDFIUM_LATEST_LIB_FILENAME}"
+                "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libpdfium.so"
+        COMMENT "Copied libpdfium.so to ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+    )
+else()
+    file(COPY "${PDFIUM_LATEST_LIB_FILENAME}" DESTINATION "${CMAKE_BINARY_DIR}")
 endif()

@@ -12,7 +12,10 @@ description: |
 output: 'lib/bind/pdfium_bindings.dart'
 headers:
   entry-points:
-    - 'src/pdfium_wrapper.h'
+    #- 'src/pdfium_wrapper.h'
+    - 'src/build/.lib/latest/include/fpdfview.h'
+    - 'src/build/.lib/latest/include/fpdf_thumbnail.h'
+    - 'src/build/.lib/latest/include/fpdf_text.h'
 compiler-opts:
   - "-Isrc/build/.lib/latest/include"
 preamble: |
