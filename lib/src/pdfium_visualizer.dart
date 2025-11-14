@@ -21,6 +21,7 @@ class _PdfViewState extends State<PdfView> {
   late final Pdfium _pdfium;
   int _pageCount = 0;
   bool _loaded = false;
+  final Map<int, Uint8List> _pageCache = {};
 
   @override
   void initState() {
@@ -45,20 +46,29 @@ class _PdfViewState extends State<PdfView> {
   }
 
   Future<Uint8List?> _renderPage(int index, double scale) async{
-    final width = (800 * scale).toInt();
-    final height = (1000 * scale).toInt();
+    final width = (400 * scale).toInt();
+    final height = (500 * scale).toInt();
+    late Uint8List image;
 
-    final data = _pdfium.renderPage(index, width, height);
-    if(data == null) return null;
+    if(_pageCache.containsKey(index)){
+      image = _pageCache[index]!;
+    }else{
+      final data = _pdfium.renderPage(index, width, height);
+      if(data == null) return null;
 
-    final image = img.Image.fromBytes(
-      bytes: data.buffer,
-      width: width,
-      height: height,
-      numChannels: 4
-    );
+      final rawImage = img.Image.fromBytes(
+        bytes: data.buffer,
+        width: width,
+        height: height,
+        numChannels: 4
+      );
 
-    return img.encodePng(image);
+      image = img.encodePng(rawImage);
+      _pageCache[index] = image;
+      if(_pageCache[index]!.isEmpty) _pageCache.remove(index);
+    }
+
+    return image;
   }
 
   @override

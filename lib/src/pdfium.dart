@@ -130,54 +130,54 @@ class Pdfium {
   }
 
   Uint8List? renderPage(
-  int pageIndex,
-  int width,
-  int height
-) {
-  final FPDF_PAGE page = _lib.FPDF_LoadPage(document, pageIndex);
-  if (page == nullptr) return null;
+    int pageIndex,
+    int width,
+    int height
+  ){
+    final FPDF_PAGE page = _lib.FPDF_LoadPage(document, pageIndex);
+    if (page == nullptr) return null;
 
-  final bitmap = _lib.FPDFBitmap_Create(width, height, 0);
-  if (bitmap.address == 0){
+    final bitmap = _lib.FPDFBitmap_Create(width, height, 0);
+    if (bitmap.address == 0){
+      _lib.FPDF_ClosePage(page);
+      return null;
+    }
+
+    final stride = _lib.FPDFBitmap_GetStride(bitmap);
+
+    _lib.FPDFBitmap_FillRect(
+      bitmap,
+      0,
+      0,
+      width,
+      height,
+      0xFFFFFFFF
+    );
+
+    _lib.FPDF_RenderPageBitmap(
+      bitmap,
+      page,
+      0,
+      0,
+      width,
+      height,
+      0,
+      FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER
+    );
+
+    final buffer = _lib.FPDFBitmap_GetBuffer(bitmap);
+    if(buffer == nullptr) return null;
+    if(buffer.address == 0) return null;
+    
+    final rgba =Uint8List.fromList(
+      buffer.cast<Uint8>().asTypedList(stride * height)
+    );
+
+    _lib.FPDFBitmap_Destroy(bitmap);
     _lib.FPDF_ClosePage(page);
-    return null;
+
+    return rgba;
   }
-
-  final stride = _lib.FPDFBitmap_GetStride(bitmap);
-
-  _lib.FPDFBitmap_FillRect(
-    bitmap,
-    0,
-    0,
-    width,
-    height,
-    0xFFFFFFFF
-  );
-
-  _lib.FPDF_RenderPageBitmap(
-    bitmap,
-    page,
-    0,
-    0,
-    width,
-    height,
-    0,
-    FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER
-  );
-
-  final buffer = _lib.FPDFBitmap_GetBuffer(bitmap);
-  if(buffer == nullptr) return null;
-  if(buffer.address == 0) return null;
-  
-  final rgba =Uint8List.fromList(
-    buffer.cast<Uint8>().asTypedList(stride * height)
-  );
-
-  _lib.FPDFBitmap_Destroy(bitmap);
-  _lib.FPDF_ClosePage(page);
-
-  return rgba;
-}
 
   Uint8List? getThumbnail(int pageIndex){
     final page = _lib.FPDF_LoadPage(document, pageIndex);
